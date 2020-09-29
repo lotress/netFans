@@ -71,5 +71,5 @@ const mutex = (ob, rg) => {
   return gr.map(es => es.map(u => m[u]))
 }
 var g = [[], [0], [0], [1, 2], [1, 2], [3, 4], [3, 4]]
-let [_a, _b, ob, _m, rg, ...__] = sub(g, [1, 3], true)
-console.log(mutex(ob, rg))
+let [_sg, _ib, ob, _m, rg, cc] = sub(g, [1, 3], true)
+console.log(cc || mutex(ob, rg))
