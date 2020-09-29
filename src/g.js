@@ -1,9 +1,8 @@
-var g = [[], [0], [0], [1, 2], [1, 2]]
 const Zero = _ => 0
 const newArray = _ => []
 const concat = (a, b) => a && a.concat(b)
-const reverseG = g => {
-  var gr = g.map(newArray)
+const reverseG = (g, r = null) => {
+  var gr = (r || g).map(newArray)
   g.forEach((es, u) => es.forEach(v => gr[v].push(u)))
   return gr
 }
@@ -32,16 +31,16 @@ const cycle = (g, u, w) => {
 }
 const addEdge = (g, u, v) => g[u].push(v)
 const remainG = (g, ss, m, ib, n) => {
-  let gn = []
-  for (let i = n; i--; gn[i] = []);
+  var rg = []
+  for (let i = n; i--; rg[i] = []);
   g.forEach(
-    (es, u) => ss[u] || es.forEach(v => gn[m[u]].push(ss[v] ? n : m[v]))
+    (es, u) => ss[u] || es.forEach(v => rg[m[u]].push(ss[v] ? n : m[v]))
   )
-  gn[n] = ib.reduce(concat, [])
-  return [m, gn, cycle(gn, n, gn.map(Zero))]
+  rg[n] = ib.reduce(concat, [])
+  return [m, rg, cycle(rg, n, rg.map(Zero))]
 }
 const sub = (g, s, cut = false) => {
-  let ss = g.map(Zero),
+  var ss = g.map(Zero),
     m = ss.slice()
   s.forEach(u => (ss[u] = 1))
   for (
@@ -63,4 +62,14 @@ const sub = (g, s, cut = false) => {
     cut ? remainG(g, ss, m, ib, m.length - s.length) : []
   )
 }
-console.log(sub(g, [1, 3], true))
+const mutex = (ob, rg) => {
+  var gr = reverseG(ob, rg),
+    os = ob.reduce((acc, es, i) => (es.length ? acc.concat([i]) : acc), [])
+  if (os.length < 2) return false
+  let m = ob.map(Zero)
+  os.forEach((u, i) => (m[u] = i))
+  return gr.map(es => es.map(u => m[u]))
+}
+var g = [[], [0], [0], [1, 2], [1, 2], [3, 4], [3, 4]]
+let [_a, _b, ob, _m, rg, ...__] = sub(g, [1, 3], true)
+console.log(mutex(ob, rg))
