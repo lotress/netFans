@@ -7,6 +7,9 @@ const concat = (a, b) => a && a.concat(b)
 const flatten = a => a.reduce(concat, [])
 const putObj = (o, u, v, val = 1) =>
   o[u] ? (o[u][v] = val) : (o[u] = { v: val })
+const delObj = (o, u, v) => {
+  if (o[u]) delete o[u][v]
+}
 const [newStage, setStage, getStage] = (s => [
   _ => ++s,
   f => t => f(t) && (t.stage = s),
@@ -16,19 +19,46 @@ const warpStage = h => (f, hp = h(setStage(f))) => (...args) => {
   newStage()
   return hp(...args)
 }
-const climb = warpStage(f => (t, r = 1, self = 1) => {
-  for (self && (r = f(t, r)); r && (t = t.p); r = f(t, r));
-})
-const bfs = f => q => {
+const climb = f => (t, r = t, self = 1) => {
+  for (self && (r = f(t, r)); r && t; (r = f(t, r)) && (t = t.p));
+  return t
+}
+const sieve = f => q => {
   for (; q.length; q = q.map(f).filter(identity));
 }
+const visited = getStage(u => u.v)
+const visit = setStage(u => (visited(u) ? 0 : (u.v = 1)))
+const lift = climb(visit)
+const lifted = t => u => ((u = lift(u)) && u.p === t ? u : 0)
+const markVisit = warpStage(climb)(u => (u.v = 1) && (!u.p || (u.p.from = u)))
+const lca = (a, b) => markVisit(a) || lift(b)
 const abf = (t, uid) => (b, es) =>
   es.filter(v => us[v].p !== t).map(v => putObj(b, uid, v) && v)
 const ab = (t, u, f = abf(t, u.uid)) =>
   ((u.ie = f(t.ia, u.ie)).length || (u.oe = f(t.oa, u.oe)).length) && u
-const moveIn = climb(
+const moveIn = warpStage(climb)(
   (t, s) => (s = s.map(u => ab(t, u)).filter(identity)) && s.length && s
 )
+const dbf = (t, uid) => (b, es) =>
+  es.filter(v => (us[v].p === t ? delObj(b, uid, v) : 1))
+const setPos = (u, f = dbf(u.pos, u.uid)) => {
+  u.pos = u.pos.p
+  return ((u.ie = f(t.ia, u.ie)).length || (u.oe = f(t.oa, u.oe)).length) && u
+}
+const moveOut = (s, t, fp = u => u.pos && !visit(u.pos) && setPos(u)) =>
+  s.forEach(u => (u.pos = u.p)) || markVisit(t) || sieve(fp)(s)
+const connected = (t, s, cf, w = {}, r, a, lf) => {
+  s = (a = (t = lca(s, t)).p).from
+  lf = lifted(a)
+  cf = u => {
+    w[u.name] = 1
+    for (let v, i = u.oe.length; i--; )
+      if ((v = lf(u.oe[i])))
+        if (v === s) return [v]
+        else if (!w[v.name] && (r = cf(v))) return concat(r, [u])
+  }
+  return cf(t)
+}
 const reverseG = (g, r = null, gr = (r || g).map(newArray)) => {
   g.forEach((es, u) => es.forEach(v => gr[v].push(u)))
   return gr
