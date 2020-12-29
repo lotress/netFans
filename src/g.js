@@ -122,15 +122,15 @@ const mutex = (ob, rg, gr = reverseG(ob, rg)) => {
 const dt = (f, acc, cf = False, d = True, h) =>
   (h = t => (acc = f(t, d(t) && t.nodes && cf(t.nodes.map(h)), acc)))
 const checked = dt(
-  (t, s) => (t.checked = t.checked || s),
+  (t, s) => (t.checked ||= s),
   0,
-  a => a.every(p => p),
+  a => a.every(identity),
   t => !t.checked
 )
 const reverseT = dt(t => t.gr || (t.gr = reverseG(t.g)))
 const treeOrder = dt((t, _, o) => (t.o = o + 1), 0)
 const compare = (p, d) => node => d * (p - node.o) > 0
-const scon = (
+const bfs = (
   nodes,
   g,
   cp,
@@ -144,9 +144,8 @@ const scon = (
       (node, u) => !cp(node) && node.checked && (w[u] = 1) && q[0].push(u)
     );
     flag && q[cur].length;
-    cur ^= 1
-  ) {
-    q[cur ^ 1] = []
+    (q[cur] = []) && (cur ^= 1)
+  )
     q[cur].forEach(u =>
       g[u].forEach(
         v =>
@@ -157,7 +156,6 @@ const scon = (
               (q[cur ^ 1].push(v) || 1)))
       )
     )
-  }
   return flag
 }
 var node_example = {
@@ -205,4 +203,4 @@ var g = [[], [0], [0], [1, 2], [1, 2], [3, 4], [3, 4]],
     { o: 5, checked: 1 },
     { o: 6 }
   ]
-console.log(scon(nodes, reverseG(g), compare(3, -1)))
+console.log(bfs(nodes, reverseG(g), compare(3, -1)))
