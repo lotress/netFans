@@ -32,3 +32,5 @@ const concatOp = (expr1, op, expr2 = NullExpr, a) => {
     op.priority
   )
 }
+const concatAll = (exprs, op) =>
+  exprs.reduce((acc, expr) => concatOp(acc, op, expr))
